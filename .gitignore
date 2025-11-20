@@ -1,0 +1,77 @@
+#
+# CUSTOM RULES.
+######################################################################################
+
+# ...
+
+#
+# DEFAULT RULES.
+######################################################################################
+
+#
+# FRAMEWORKS DEPENDENCIES.
+#
+
+node_modules
+vendor
+
+#
+# IDE - JETBRAINS.
+#
+
+.idea
+
+#
+# OS - COMMON.
+#
+
+*.log
+*.log*
+
+#
+# OS - LINUX.
+#
+
+# OS - LINUX - HOME.
+
+*~
+
+# OS - LINUX - KDE DIRECTORY PREFERENCES.
+
+.directory
+
+# OS - LINUX - RECYCLE BIN.
+
+.Trash-*
+
+# OS - LINUX - TEMPORARY FILES.
+
+.fuse_hidden*
+
+#
+# OS - MAC.
+#
+
+.DS_Store
+
+#
+# OS - WINDOWS.
+#
+
+# OS - WINDOWS - DUMP FILE.
+
+*.stackdump
+
+#OS  WINDOWS - FOLDER CONFIG FILE.
+
+[Dd]esktop.ini
+
+# OS - WINDOWS - THUMBNAILS.
+
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+
+# OS - WINDOWS - SHORTCUTS.
+
+*.lnk
