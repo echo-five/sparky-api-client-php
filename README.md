@@ -1,6 +1,6 @@
 # Sparky API Client PHP
 
-[![License](https://img.shields.io/github/license/echo-five/sparky-api-client-php?label=Licence&style=flat-square)](https://github.com/echo-five/sparky-api-client-php/blob/master/LICENSE) ![PHP Version](https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=flat-square&logo=php&logoColor=white) ![Size](https://img.shields.io/github/languages/code-size/echo-five/sparky-api-client-php?label=Size&style=flat-square)
+![PHP Version](https://img.shields.io/badge/PHP-8.3%2B-777BB4?style=flat-square&logo=php&logoColor=white) ![Size](https://img.shields.io/github/languages/code-size/echo-five/sparky-api-client-php?label=Size&style=flat-square) [![License](https://img.shields.io/github/license/echo-five/sparky-api-client-php?label=Licence&style=flat-square)](https://github.com/echo-five/sparky-api-client-php/blob/master/LICENSE) 
 
 A PHP client library for the Sparky API.
 
@@ -31,7 +31,7 @@ A PHP client library for the Sparky API.
 
 ## Requirements
 
-- PHP 8.3 or higher with cURL, JSON, Sodium and Ctype extensions
+PHP 8.3 or higher with cURL, JSON, Sodium and Ctype extensions
 
 ## Installation
 
@@ -109,10 +109,10 @@ catch (Exception $e) {
 
 The library allows two types of requests: 
 
-- **Simple requests (unsigned)** 
+- **Simple requests (unsigned)**   
     The request is validated only using your API key.
-- **Signed requests**
-    Your request is signed using asymmetric cryptography.
+- **Signed requests**  
+    Your request is signed using asymmetric cryptography.  
     This allows to verify both the authenticity and integrity of the data.
 
 Signed requests, although a bit slower, are therefore more secure than simple requests.
@@ -122,14 +122,14 @@ Signed requests, although a bit slower, are therefore more secure than simple re
 - When you create an API key on the platform, a cryptographic key pair is generated as well.
     - **The public key** is stored on the API side and linked to your account.
     - **The private key** (the API Signature Key) is shown to you once.
-        - The system does not store it and cannot regenerate it.
+        - The system does not store it and cannot regenerate it.  
             You must keep it secure.
 - You use the API Signature Key to sign your requests before they are sent.
 - The system verifies each signature using your registered public key.
 - If the signature is invalid, the request is not processed.
 
-**Signing requests is very straightforward!**
-The only thing to do is to provide your API Signature Key when you instantiate the library.
+**Signing requests is very straightforward!**  
+The only thing to do is to provide your API Signature Key when you instantiate the library.  
 Then all requests will be automatically signed!
 
 ```php
@@ -146,7 +146,7 @@ $sparkyApi = new SparkyApiClient('SPARKY_API_HOST', 'SPARKY_API_KEY', 'SPARKY_AP
 
 ### Debugging
 
-Troubleshooting an API can sometimes be challenging.
+Troubleshooting an API can sometimes be challenging.  
 The library includes a debugging mode to help you better understand how requests are built and sent.
 
 The debugging mode allows to:
@@ -155,7 +155,7 @@ The debugging mode allows to:
 - See how many requests were executed.
 - See the execution order of the requests.
 
-**Using the debugging mode is very easy!**
+**Using the debugging mode is very easy!**  
 Just start it at a specific breakpoint and stop it at another.
 
 ```php
@@ -197,7 +197,7 @@ catch (Exception $e) {
 }
 ```
 
-*See [Available methods](#available-methods) section for more debugging options.*
+*See [Available methods](#available-methods) section for more debugging options.*  
 *This example is stored in the project and can be downloaded here: [GetStartedDebugging.php](https://github.com/echo-five/sparky-api-client-php/blob/master/examples/GetStartedDebugging.php)*
 
 Here is an example of the debugging information:
