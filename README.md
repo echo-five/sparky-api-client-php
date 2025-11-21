@@ -502,16 +502,17 @@ var_dump($sparkyApi->debugGet());
 
 ### Accept Unsafe Certificates
 
-This method allows to disable the cURL SSL verify peer, for example: accepting self-signed SSL certificates in development.
+This method allows to disable the cURL SSL verify peer.  
+For example: accepting self-signed SSL certificates in development.
 
 > acceptUnsafeCertificatesByDisablingCurlSllVerifyPeer()
 
-**WARNING:**
-**This method is intended for API development and testing purposes only.**
-**It should NEVER be used when consuming production APIs, as it disables SSL verification.**
+**WARNING:**  
+**This method is intended for API development and testing purposes only.**  
+**It should NEVER be used when consuming production APIs, as it disables SSL verification.**  
 **Only use this when testing against local API instances with self-signed certificates.**
 
-This method returns the class instance itself.
+This method returns the class instance itself.  
 For convenience, this method is chainable.
 
 Example:
