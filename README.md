@@ -228,27 +228,27 @@ This method allows to make an API request.
 
 > request(string $requestType, string $requestEndpoint, array <$requestParams>, string <$requestMode>)
 
-- The `requestType` argument defines the HTTP method to use.
-Allowed values are `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`.
+- The `requestType` argument defines the HTTP method to use.  
+Allowed values are `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`.  
 This argument is mandatory.
 
-- The `requestEndpoint` argument defines the endpoint to call.
-This is a URI, e.g.: `/endpoint` or `/api/v1/resource`
+- The `requestEndpoint` argument defines the endpoint to call.  
+This is a URI, e.g.: `/endpoint` or `/api/v1/mirror`   
 This argument is mandatory.
 
-- The `requestParams` argument defines the data to send to the endpoint.
-This is a key/value array, by default no data is sent.
-For `GET` and `DELETE`: sent as query string parameters.
-For `POST`, `PUT`, `PATCH`: sent as request body.
+- The `requestParams` argument defines the data to send to the endpoint.  
+This is a key/value array, by default no data is sent.  
+For `GET` and `DELETE`: sent as query string parameters.  
+For `POST`, `PUT`, `PATCH`: sent as request body.  
 This argument is optional.
 
-- The `requestMode` argument defines the body encoding format.
-Allowed values are `JSON` (default), `FORM`, and `HTTP`.
-Only applicable for `POST`, `PUT`, and `PATCH` requests.
+- The `requestMode` argument defines the body encoding format.  
+Allowed values are `JSON` (default), `FORM`, and `HTTP`.  
+Only applicable for `POST`, `PUT`, and `PATCH` requests.  
 This argument is optional.
 
-This method returns the class instance itself, not the result of the request.
-The request result must be retrieved using another method (`getRequestResponse`).
+This method returns the class instance itself, not the result of the request.  
+The request result must be retrieved using another method (`getRequestResponse`).  
 For convenience, this method is chainable.
 
 Example:
@@ -264,9 +264,9 @@ This method allows to get the response of the request.
 
 > getRequestResponse(bool <$object>)
 
-- The `object` argument defines if the request response must be returned as object or not.
-The API replies in JSON format, so the response is a raw JSON string.
-The `object` argument allows to get a PHP object instead of a raw JSON string.
+- The `object` argument defines if the request response must be returned as object or not.  
+The API replies in JSON format, so the response is a raw JSON string.  
+The `object` argument allows to get a PHP object instead of a raw JSON string.  
 The `object` argument is set to `true` by default.
 
 Usage examples:
@@ -277,8 +277,8 @@ $requestResponse = $sparkyApi->getRequestResponse(true);  // Return a PHP object
 $requestResponse = $sparkyApi->getRequestResponse(false); // Return a raw JSON string.
 ```
 
-This method returns a raw JSON string or a PHP object, depending on the passed argument.
-The request response is always a full API response.
+This method returns a raw JSON string or a PHP object, depending on the passed argument.  
+The request response is always a full API response.  
 Here is an example:
 
 ```php
@@ -319,7 +319,7 @@ stdClass Object
 
 ### Get Request Response Status
 
-This method allows to directly get the `[status]` property of the request response.
+This method allows to directly get the `[status]` property of the request response.  
 The `status` is the HTTP status code associated with the response.
 
 > getRequestResponseStatus()
@@ -365,8 +365,8 @@ $requestResponseMessages = $sparkyApi->getRequestResponseMessages();
 
 ### Get Request Info
 
-This method allows to get the cURL request information.
-Each request is made using the PHP cURL extension, and this method returns the result of `curl_getinfo()`.
+This method allows to get the cURL request information.  
+Each request is made using the PHP cURL extension, and this method returns the result of `curl_getinfo()`.  
 See the official [PHP.net](https://www.php.net/manual/en/function.curl-getinfo.php) documentation for details.
 
 > getRequestInfo()
@@ -382,12 +382,12 @@ $requestInfo = $sparkyApi->getRequestInfo();
 
 ### Debug Start
 
-This method allows to start the debugging mode.
+This method allows to start the debugging mode.  
 Every request executed after this method call will be taken into account for the debugging.
 
 > debugStart()
 
-This method returns the class instance itself.
+This method returns the class instance itself.  
 For convenience, this method is chainable.
 
 Example:
@@ -399,12 +399,12 @@ $sparkyApi->debugStart();
 
 ### Debug Stop
 
-This method allows to stop the debugging mode.
+This method allows to stop the debugging mode.  
 Every request executed after this method call will not be taken into account for the debugging.
 
 > debugStop()
 
-This method returns the class instance itself.
+This method returns the class instance itself.  
 For convenience, this method is chainable.
 
 Example:
@@ -416,8 +416,8 @@ $sparkyApi->debugStop();
 
 ### Debug Get
 
-This method allows to get the result of the debugging data.
-This method call doesn't stop the debugging mode, so it can be called every time needed.
+This method allows to get the result of the debugging data.  
+This method call doesn't stop the debugging mode, so it can be called every time needed.  
 This is just a debugging output at the time "t".
 
 > debugGet()
@@ -454,12 +454,12 @@ var_dump($sparkyApi->debugGet());
 
 ### Debug Reset
 
-This method allows to reset the debugging data.
+This method allows to reset the debugging data.  
 This method call doesn't stop the debugging mode, but it erases all collected data.
 
 > debugReset()
 
-This method returns the class instance itself.
+This method returns the class instance itself.  
 For convenience, this method is chainable.
 
 Example #1:
