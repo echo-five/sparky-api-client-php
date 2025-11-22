@@ -310,8 +310,15 @@ class SparkyApiClient
         ];
         // Set the request signature.
         if (! empty($this->apiSignatureKey)) {
-            // Set the signature header.
-            $requestHeaders[] = "X-Api-Signature: " . $this->requestGetSignature($requestType, $requestEndpoint, $requestParams);
+            // Generate nonce (32 random bytes encoded as hexadecimal) for replay protection.
+            $requestNonce = bin2hex(random_bytes(32));
+            // Generate timestamp in ISO 8601 format (UTC) for replay protection.
+            $requestTimestamp = gmdate('Y-m-d\TH:i:s\Z');
+            // Add timestamp and nonce headers (always sent for replay protection).
+            $requestHeaders[] = "X-Api-Nonce: " . $requestNonce;
+            $requestHeaders[] = "X-Api-Timestamp: " . $requestTimestamp;
+            // Set the signature header (always includes timestamp and nonce).
+            $requestHeaders[] = "X-Api-Signature: " . $this->requestGetSignature($requestType, $requestEndpoint, $requestParams, $requestNonce, $requestTimestamp);
         }
         // Switch on request type.
         switch (strtoupper(trim($requestType))) {
@@ -477,7 +484,7 @@ class SparkyApiClient
     }
     
     /**
-     * Request - Get the request signature using Ed25519 cryptography.
+     * Request - Get the request signature using cryptography.
      *
      * @param string $requestType
      *  The request type (GET, POST, etc.).
@@ -485,13 +492,17 @@ class SparkyApiClient
      *  The request endpoint.
      * @param array $requestParams
      *  The request parameters.
+     * @param string $requestNonce
+     *  The request nonce for replay protection.
+     * @param string $requestTimestamp
+     *  The request timestamp for replay protection.
      *
      * @return string
      *  The hexadecimal signature (128 characters).
      * @throws \Exception
      *  If signature key is invalid or signing fails.
      */
-    private function requestGetSignature(string $requestType, string $requestEndpoint, array $requestParams): string
+    private function requestGetSignature(string $requestType, string $requestEndpoint, array $requestParams, string $requestNonce, string $requestTimestamp): string
     {
         // Decode the private key from hexadecimal.
         $signatureKeyDecoded = hex2bin($this->apiSignatureKey);
@@ -516,7 +527,10 @@ class SparkyApiClient
                 $message .= '?' . http_build_query($sortedParams);
             }
         }
-        // Sign the message using Sodium Ed25519.
+        // Always append timestamp and nonce to the message for replay protection.
+        // Format: message|nonce|timestamp
+        $message .= '|' . $requestNonce . '|' . $requestTimestamp;
+        // Sign the message using Sodium.
         try {
             $signature = sodium_crypto_sign_detached($message, $signatureKeyDecoded);
         }
