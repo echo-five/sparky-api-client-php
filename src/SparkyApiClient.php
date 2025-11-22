@@ -315,7 +315,7 @@ class SparkyApiClient
     public function getResponseStatus(): int
     {
         // Return the HTTP status code as int or 0.
-        return (int) $this->getResponse()->status ?? 0;
+        return (int) ($this->getResponse()->status ?? 0);
     }
     
     /**
