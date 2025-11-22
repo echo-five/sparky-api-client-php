@@ -19,13 +19,13 @@ try {
         'foo' => 'Bar',
         'biz' => 'Buz',
     ]);
-    
+
     // Stop the debugging mode.
     $sparkyApi->debugStop();
-    
+
     // Get the request response.
-    $requestResponse = $sparkyApi->getRequestResponse();
-    
+    $requestResponse = $sparkyApi->getResponse();
+
     // Dumps.
     var_dump($requestResponse);
     var_dump($sparkyApi->debugGet());

@@ -3,7 +3,9 @@
 namespace SparkyApiClient;
 
 use DateTime;
+use DateTimeZone;
 use Exception;
+use stdClass;
 
 /**
  * Sparky API Client PHP.
@@ -37,33 +39,68 @@ class SparkyApiClient
     private string $apiSignatureKey;
     
     /**
-     * The API Request info.
+     * cURL transaction info.
      *
      * @var array
      */
-    private array $apiRequestInfo = [];
+    private array $curlInfo = [];
     
     /**
-     * The API Request response.
+     * Received response body.
      *
      * @var string
      */
-    private string $apiRequestResponse;
+    private string $receivedBody;
+    
+    /**
+     * Received response headers.
+     *
+     * @var string
+     */
+    private string $receivedHeaders = '';
+    
+    /**
+     * Sent request headers.
+     *
+     * @var array
+     */
+    private array $sentHeaders = [];
+    
+    /**
+     * Sent request payload.
+     *
+     * @var string
+     */
+    private string $sentPayload = '';
+    
+    /**
+     * Sent request method.
+     *
+     * @var string
+     */
+    private string $sentMethod = '';
+    
+    /**
+     * Sent request endpoint.
+     *
+     * @var string
+     */
+    private string $apiEndpoint = '';
     
     /**
      * Allow unsafe SSL certificates by disabling cURL SSL verify peer.
      *
      * @var bool
      */
-    private bool $allowUnsafeCertificatesByDisablingCurlSllVerifyPeer = false;
-
+    private bool $allowUnsafeCertificatesByDisablingCurlSslVerifyPeer = false;
+    
     /**
      * The debug status.
      *
      * @var bool
      */
     private bool $debug = false;
-
+    
     /**
      * The debug data.
      *
@@ -90,6 +127,11 @@ class SparkyApiClient
             // Throw an exception.
             throw new Exception('Please provide the API URL!');
         }
+        // Validate API host format (must use HTTPS).
+        if (! $this->isValidHostFormat($apiHost)) {
+            // Throw an exception.
+            throw new Exception('The API host must use HTTPS protocol!');
+        }
         // Set the API host URL.
         $this->apiHost = $apiHost;
         // Checks if the API key is provided.
@@ -113,7 +155,7 @@ class SparkyApiClient
         }
         // Initialize API request response.
         // Using str_repeat to avoid unlisted PHPStorm JSON inspection warnings on empty string literals.
-        $this->apiRequestResponse = str_repeat('', 1);
+        $this->receivedBody = str_repeat('', 1);
     }
     
     /**
@@ -128,16 +170,16 @@ class SparkyApiClient
      * @return SparkyApiClient
      *  The instance for method chaining.
      */
-    public function acceptUnsafeCertificatesByDisablingCurlSllVerifyPeer(): SparkyApiClient
+    public function acceptUnsafeCertificatesByDisablingCurlSslVerifyPeer(): SparkyApiClient
     {
         // Enable unsafe certificate acceptance.
-        $this->allowUnsafeCertificatesByDisablingCurlSllVerifyPeer = true;
+        $this->allowUnsafeCertificatesByDisablingCurlSslVerifyPeer = true;
         // Return the instance for method chaining.
         return $this;
     }
-
+    
     /**
-     * Debug - Get the debug data.
+     * Get the debug data.
      *
      * @return array
      *  The debug data containing request count, time, and trace, or empty array if not initialized.
@@ -149,7 +191,7 @@ class SparkyApiClient
     }
     
     /**
-     * Debug - Reset the debug data.
+     * Reset the debug data.
      *
      * @return SparkyApiClient
      *  The instance for method chaining.
@@ -167,7 +209,7 @@ class SparkyApiClient
     }
     
     /**
-     * Debug - Enable the debugging mode.
+     * Enable the debugging mode.
      *
      * @return SparkyApiClient
      *  The instance for method chaining.
@@ -193,7 +235,7 @@ class SparkyApiClient
     }
     
     /**
-     * Debug - Disable the debugging mode.
+     * Disable the debugging mode.
      *
      * @return SparkyApiClient
      *  The instance for method chaining.
@@ -214,70 +256,181 @@ class SparkyApiClient
     }
     
     /**
-     * Request - Get the request info.
+     * Get cURL info.
      *
      * @return array
-     *  The cURL request info array, or empty array if no request has been executed.
+     *  The cURL info array, or empty array if no request has been executed.
      */
-    public function getRequestInfo(): array
+    public function getCurlInfo(): array
     {
-        // Return the cURL request info or empty array if not set.
-        return $this->apiRequestInfo ?? [];
+        // Return the cURL info or empty array if not set.
+        return $this->curlInfo ?? [];
     }
     
     /**
-     * Request - Get the request response.
+     * Get the response.
      *
      * @param bool $object
-     *  If the response must be returned as object (default), instead a of raw string.
+     *  If the response must be returned as object (default), instead of a raw string.
      *
      * @return string|object
      *  The decoded response as object if $object is true, or raw JSON string if false.
      */
-    public function getRequestResponse(bool $object = true): object|string
+    public function getResponse(bool $object = true): object|string
     {
         // Return the response as decoded object or raw JSON string.
-        return ($object) ? json_decode($this->apiRequestResponse) : $this->apiRequestResponse;
+        return ($object) ? json_decode($this->receivedBody) : $this->receivedBody;
     }
     
     /**
-     * Request - Get the request response data.
+     * Get the response data.
      *
      * @return object
      *  The data property from the response, or empty object if not present.
      */
-    public function getRequestResponseData(): object
+    public function getResponseData(): object
     {
         // Return the data property from the response or empty object.
-        return $this->getRequestResponse()->data ?? (object) [];
+        return $this->getResponse()->data ?? (object) [];
     }
     
     /**
-     * Request - Get the request response messages.
+     * Get the response messages.
      *
      * @return array
      *  The messages array from the response, or empty array if not present.
      */
-    public function getRequestResponseMessages(): array
+    public function getResponseMessages(): array
     {
         // Return the messages array from the response or empty array.
-        return $this->getRequestResponse()->messages ?? [];
+        return $this->getResponse()->messages ?? [];
     }
     
     /**
-     * Request - Get the request response status.
+     * Get the response status.
      *
      * @return int
      *  The HTTP status code as int, or 0 if not present.
      */
-    public function getRequestResponseStatus(): int
+    public function getResponseStatus(): int
     {
         // Return the HTTP status code as int or 0.
-        return (int) $this->getRequestResponse()->status ?? 0;
+        return (int) $this->getResponse()->status ?? 0;
     }
     
     /**
-     * Request - Execute a request.
+     * Get the response headers.
+     *
+     * @param bool $array
+     *  If the headers must be returned as array (default), instead of raw string.
+     *
+     * @return array|string
+     *  The parsed headers as associative array if $array is true, or raw headers string if false.
+     */
+    public function getResponseHeaders(bool $array = true): array|string
+    {
+        // Return as array or raw string.
+        return ($array) ? $this->responseParseHeaders($this->receivedHeaders) : $this->receivedHeaders;
+    }
+
+    /**
+     * Get the complete sent request.
+     *
+     * @param bool $object
+     *  If the request must be returned as object (default), instead of raw string.
+     *
+     * @return object|string
+     *  The request as object if $object is true, or raw string if false.
+     */
+    public function getSent(bool $object = true): object|string
+    {
+        // Return as object or raw string.
+        if ($object) {
+            // Build request object.
+            return (object) [
+                'method' => $this->sentMethod,
+                'endpoint' => $this->apiEndpoint,
+                'headers' => $this->getSentHeaders(),
+                'payload' => $this->getSentPayload(),
+            ];
+        }
+        // Build raw string representation.
+        $lines = [];
+        $lines[] = $this->sentMethod . ' ' . $this->apiEndpoint;
+        $lines[] = '';
+        $lines[] = 'Headers:';
+        $lines[] = $this->getSentHeaders(false);
+        $lines[] = '';
+        $lines[] = 'Payload:';
+        $lines[] = $this->sentPayload;
+        // Return formatted request string.
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Get the sent headers.
+     *
+     * @param bool $array
+     *  If the headers must be returned as array (default), instead of raw string.
+     *
+     * @return array|string
+     *  The headers as array if $array is true, or raw string if false.
+     */
+    public function getSentHeaders(bool $array = true): array|string
+    {
+        // Return as array or raw string.
+        if ($array) {
+            // Parse headers array to associative array.
+            $parsed = [];
+            // For each header.
+            foreach ($this->sentHeaders as $header) {
+                $parts = explode(':', $header, 2);
+                if (count($parts) === 2) {
+                    $parsed[trim($parts[0])] = trim($parts[1]);
+                }
+            }
+            // Sort by key alphabetically.
+            ksort($parsed);
+            // Return parsed headers as array.
+            return $parsed;
+        }
+        // Return raw string with line breaks.
+        return implode("\n", $this->sentHeaders);
+    }
+
+    /**
+     * Get the sent payload.
+     *
+     * @param bool $object
+     *  If the payload must be returned as object (default), instead of raw string.
+     *
+     * @return object|string
+     *  The decoded payload as object if $object is true, or raw string if false.
+     */
+    public function getSentPayload(bool $object = true): object|string
+    {
+        // Return as object or raw string.
+        if ($object) {
+            // Try to decode JSON payload if not empty.
+            if (! empty($this->sentPayload)) {
+                $decoded = json_decode($this->sentPayload, false);
+                // Convert array to object.
+                if (is_array($decoded)) {
+                    // Return converted object.
+                    return (object) $decoded;
+                }
+                // Return decoded object or empty object if null.
+                return $decoded !== null ? $decoded : new stdClass();
+            }
+            // Return empty object for empty payload.
+            return new stdClass();
+        }
+        // Return raw payload string.
+        return $this->sentPayload;
+    }
+    
+    /**
+     * Execute a request.
      *
      * @param string $requestType
      *  The request type (GET, POST, PUT, PATCH, DELETE).
@@ -300,10 +453,13 @@ class SparkyApiClient
      */
     public function request(string $requestType, string $requestEndpoint, array $requestParams = [], string $requestMode = 'json'): SparkyApiClient
     {
+        // Store request method and endpoint.
+        $this->sentMethod = strtoupper(trim($requestType));
+        $this->apiEndpoint = trim($requestEndpoint);
         // Initialize the request.
         $request = curl_init();
         // Initialize the request URL.
-        $requestUrl = $this->requestGetUrl(trim($requestEndpoint));
+        $requestUrl = $this->requestGenerateUrl(trim($requestEndpoint));
         // Set the request headers.
         $requestHeaders = [
             'Authorization: Bearer ' . $this->apiKey,
@@ -318,17 +474,21 @@ class SparkyApiClient
             $requestHeaders[] = "X-Api-Nonce: " . $requestNonce;
             $requestHeaders[] = "X-Api-Timestamp: " . $requestTimestamp;
             // Set the signature header (always includes timestamp and nonce).
-            $requestHeaders[] = "X-Api-Signature: " . $this->requestGetSignature($requestType, $requestEndpoint, $requestParams, $requestNonce, $requestTimestamp);
+            $requestHeaders[] = "X-Api-Signature: " . $this->requestGenerateSignature($requestType, $requestEndpoint, $requestParams, $requestNonce, $requestTimestamp);
         }
         // Switch on request type.
         switch (strtoupper(trim($requestType))) {
             // GET.
             case 'GET':
+                // No payload for GET.
+                $this->sentPayload = '';
                 // Set the request URL with query parameters if provided.
                 $requestUrl = (! empty($requestParams)) ? sprintf('%s?%s', $requestUrl, http_build_query($requestParams)) : $requestUrl;
                 break;
             // DELETE.
             case 'DELETE':
+                // No payload for DELETE.
+                $this->sentPayload = '';
                 // Set the DELETE method.
                 curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'DELETE');
                 // Set the request URL with query parameters if provided.
@@ -353,27 +513,35 @@ class SparkyApiClient
                 switch (strtoupper(trim($requestMode))) {
                     // FORM.
                     case 'FORM':
+                        // Store payload as form data (cannot be converted to string easily).
+                        $this->sentPayload = http_build_query($requestParams);
                         // Set the POST fields (cURL handles Content-Type with boundary automatically).
                         curl_setopt($request, CURLOPT_POSTFIELDS, $requestParams);
                         break;
                     // HTTP.
                     case 'HTTP':
+                        // Store payload as URL-encoded string.
+                        $this->sentPayload = http_build_query($requestParams);
                         // Set the POST fields as URL-encoded string.
-                        curl_setopt($request, CURLOPT_POSTFIELDS, http_build_query($requestParams));
+                        curl_setopt($request, CURLOPT_POSTFIELDS, $this->sentPayload);
                         break;
                     // JSON.
                     case 'JSON':
                     default:
                         // Add the correct header.
                         $requestHeaders[] = 'Content-Type: application/json';
+                        // Store payload as JSON string.
+                        $this->sentPayload = json_encode($requestParams);
                         // Set the POST fields as JSON string.
-                        curl_setopt($request, CURLOPT_POSTFIELDS, json_encode($requestParams));
+                        curl_setopt($request, CURLOPT_POSTFIELDS, $this->sentPayload);
                         break;
                 }
                 break;
         }
         // Set the request URL.
         curl_setopt($request, CURLOPT_URL, $requestUrl);
+        // Store the request headers.
+        $this->sentHeaders = $requestHeaders;
         // Set the headers.
         curl_setopt($request, CURLOPT_HTTPHEADER, $requestHeaders);
         // Set remaining options.
@@ -381,16 +549,21 @@ class SparkyApiClient
         curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($request, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($request, CURLOPT_TCP_FASTOPEN, true);
+        // Enable header output in response.
+        curl_setopt($request, CURLOPT_HEADER, true);
         // Allow unsafe SSL certificates if configured.
-        if ($this->allowUnsafeCertificatesByDisablingCurlSllVerifyPeer) {
+        if ($this->allowUnsafeCertificatesByDisablingCurlSslVerifyPeer) {
             curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
         }
         // Execute the request.
         $requestResponse = curl_exec($request);
-        // Set the request response attribute.
-        $this->apiRequestResponse = $requestResponse;
         // Set the request info attribute.
-        $this->apiRequestInfo = curl_getinfo($request);
+        $this->curlInfo = curl_getinfo($request);
+        // Get header size from request info.
+        $headerSize = $this->curlInfo['header_size'] ?? 0;
+        // Separate headers and body.
+        $this->receivedHeaders = substr($requestResponse, 0, $headerSize);
+        $this->receivedBody = substr($requestResponse, $headerSize);
         // Check the request error.
         if (curl_errno($request)) {
             // Throw exception.
@@ -401,14 +574,14 @@ class SparkyApiClient
         // Debug.
         if (! empty($this->debug)) {
             // Time + Increment + Message.
-            $this->debugAddRequestTime(($this->apiRequestInfo['total_time'] ?? 0))->debugAddRequestCount()->debugAddMessage('Request | ' . $requestUrl);
+            $this->debugAddRequestTime(($this->curlInfo['total_time'] ?? 0))->debugAddRequestCount()->debugAddMessage('Request | ' . $requestUrl);
         }
         // Return the instance for method chaining.
         return $this;
     }
     
     /**
-     * Debug - Add debug message.
+     * Add debug message.
      *
      * @param string $message
      *  The trace $message.
@@ -422,7 +595,7 @@ class SparkyApiClient
     private function debugAddMessage(string $message): SparkyApiClient
     {
         // Set the timestamp in UTC.
-        $timestamp = (new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d\TH:i:s.u\Z');
+        $timestamp = (new DateTime('now', new DateTimeZone('UTC')))->format('Y-m-d\TH:i:s.u\Z');
         // Set the message.
         $this->debugData['requests']['trace'][$timestamp] = $message;
         // Return the instance for method chaining.
@@ -430,7 +603,7 @@ class SparkyApiClient
     }
     
     /**
-     * Debug - Add debug request count.
+     * Add debug request count.
      *
      * @return SparkyApiClient
      *  The instance for method chaining.
@@ -444,7 +617,7 @@ class SparkyApiClient
     }
     
     /**
-     * Debug - Add debug request time.
+     * Add debug request time.
      *
      * @param float $time
      *  The time to add in seconds.
@@ -461,7 +634,7 @@ class SparkyApiClient
     }
     
     /**
-     * Debug - Initialize the debug data.
+     * Initialize the debug data.
      *
      * @return SparkyApiClient
      *  The instance for method chaining.
@@ -484,7 +657,7 @@ class SparkyApiClient
     }
     
     /**
-     * Request - Get the request signature using cryptography.
+     * Get the request signature using cryptography.
      *
      * @param string $requestType
      *  The request type (GET, POST, etc.).
@@ -502,7 +675,7 @@ class SparkyApiClient
      * @throws \Exception
      *  If signature key is invalid or signing fails.
      */
-    private function requestGetSignature(string $requestType, string $requestEndpoint, array $requestParams, string $requestNonce, string $requestTimestamp): string
+    private function requestGenerateSignature(string $requestType, string $requestEndpoint, array $requestParams, string $requestNonce, string $requestTimestamp): string
     {
         // Decode the private key from hexadecimal.
         $signatureKeyDecoded = hex2bin($this->apiSignatureKey);
@@ -515,7 +688,7 @@ class SparkyApiClient
         if (in_array($method, ['POST', 'PUT', 'PATCH'])) {
             // Requests with body: sign the JSON body.
             // Canonicalize by sorting keys alphabetically (prevents bypass via key reordering).
-            $sortedParams = $this->arraySortRecursive($requestParams);
+            $sortedParams = $this->signatureCanonizeArray($requestParams);
             $message = json_encode($sortedParams, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
         else {
@@ -523,7 +696,7 @@ class SparkyApiClient
             $message = '/' . ltrim($requestEndpoint, '/');
             if (! empty($requestParams)) {
                 // Canonicalize by sorting query parameters alphabetically.
-                $sortedParams = $this->arraySortRecursive($requestParams);
+                $sortedParams = $this->signatureCanonizeArray($requestParams);
                 $message .= '?' . http_build_query($sortedParams);
             }
         }
@@ -543,7 +716,7 @@ class SparkyApiClient
     }
     
     /**
-     * Request - Get the request URL.
+     * Get the request URL.
      *
      * @param string $requestEndpoint
      *  The request endpoint.
@@ -551,7 +724,7 @@ class SparkyApiClient
      * @return string
      *  The complete request URL with host if configured.
      */
-    private function requestGetUrl(string $requestEndpoint): string
+    private function requestGenerateUrl(string $requestEndpoint): string
     {
         // Initialize.
         $requestUrl = $requestEndpoint;
@@ -573,7 +746,7 @@ class SparkyApiClient
      * @return array
      *  The sorted array with all nested arrays sorted alphabetically by key.
      */
-    private function arraySortRecursive(array $array): array
+    private function signatureCanonizeArray(array $array): array
     {
         // Sort the array by keys.
         ksort($array);
@@ -582,11 +755,26 @@ class SparkyApiClient
             // If the value is an array.
             if (is_array($value)) {
                 // Sort recursively.
-                $array[$key] = $this->arraySortRecursive($value);
+                $array[$key] = $this->signatureCanonizeArray($value);
             }
         }
         // Return the sorted array.
         return $array;
+    }
+    
+    /**
+     * Validate API host format.
+     *
+     * @param string $host
+     *  The API host to validate.
+     *
+     * @return bool
+     *  True if the host uses HTTPS protocol, false otherwise.
+     */
+    private function isValidHostFormat(string $host): bool
+    {
+        // Host must start with https:// (HTTPS only).
+        return str_starts_with($host, 'https://');
     }
     
     /**
@@ -617,5 +805,39 @@ class SparkyApiClient
     {
         // Signature key must be exactly 128 hexadecimal characters (64 bytes).
         return strlen($signatureKey) === 128 && ctype_xdigit($signatureKey);
+    }
+    
+    /**
+     * Parse response headers from raw string to associative array.
+     *
+     * @param string $headersRaw
+     *  The raw headers string.
+     *
+     * @return array
+     *  Associative array of headers (header name => header value).
+     */
+    private function responseParseHeaders(string $headersRaw): array
+    {
+        // Initialize headers array.
+        $headers = [];
+        // Split headers by line.
+        $lines = explode("\r\n", trim($headersRaw));
+        // For each line.
+        foreach ($lines as $line) {
+            // Skip empty lines and status line (HTTP/x.x).
+            if (empty($line) || str_starts_with($line, 'HTTP/')) {
+                continue;
+            }
+            // Split header name and value.
+            $parts = explode(':', $line, 2);
+            if (count($parts) === 2) {
+                // Store header (trim whitespace).
+                $headers[trim($parts[0])] = trim($parts[1]);
+            }
+        }
+        // Sort by key alphabetically.
+        ksort($headers);
+        // Return parsed headers.
+        return $headers;
     }
 }

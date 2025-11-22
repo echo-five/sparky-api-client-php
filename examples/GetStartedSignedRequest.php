@@ -16,10 +16,10 @@ try {
         'foo' => 'Bar',
         'biz' => 'Buz',
     ]);
-    
+
     // Get the request response.
-    $requestResponse = $sparkyApi->getRequestResponse();
-    
+    $requestResponse = $sparkyApi->getResponse();
+
     // Dump.
     var_dump($requestResponse);
 }

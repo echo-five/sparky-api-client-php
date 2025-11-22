@@ -17,11 +17,15 @@ A PHP client library for the Sparky API.
     * [Debugging](#debugging)
 - [Available methods](#available-methods)
     * [Request](#request)
-    * [Get Request Response](#get-request-response)
-    * [Get Request Response Status](#get-request-response-status)
-    * [Get Request Response Data](#get-request-response-data)
-    * [Get Request Response Messages](#get-request-response-messages)
-    * [Get Request Info](#get-request-info)
+    * [Get Response](#get-response)
+    * [Get Response Status](#get-response-status)
+    * [Get Response Headers](#get-response-headers)
+    * [Get Response Data](#get-response-data)
+    * [Get Response Messages](#get-response-messages)
+    * [Get Sent](#get-sent)
+    * [Get Sent Headers](#get-sent-headers)
+    * [Get Sent Payload](#get-sent-payload)
+    * [Get cURL Info](#get-curl-info)
     * [Debug Start](#debug-start)
     * [Debug Stop](#debug-stop)
     * [Debug Get](#debug-get)
@@ -88,10 +92,10 @@ try {
         'foo' => 'Bar',
         'biz' => 'Buz',
     ]);
-    
+
     // Get the request response.
-    $requestResponse = $sparkyApi->getRequestResponse();
-    
+    $requestResponse = $sparkyApi->getResponse();
+
     // Dump.
     var_dump($requestResponse);
 }
@@ -183,10 +187,10 @@ try {
     
     // Stop the debugging mode.
     $sparkyApi->debugStop();
-    
+
     // Get the request response.
-    $requestResponse = $sparkyApi->getRequestResponse();
-    
+    $requestResponse = $sparkyApi->getResponse();
+
     // Dumps.
     var_dump($requestResponse);
     var_dump($sparkyApi->debugGet());
@@ -248,21 +252,21 @@ Only applicable for `POST`, `PUT`, and `PATCH` requests.
 This argument is optional.
 
 This method returns the class instance itself, not the result of the request.  
-The request result must be retrieved using another method (`getRequestResponse`).  
+The request result must be retrieved using another method (`getResponse`).  
 For convenience, this method is chainable.
 
 Example:
 
 ```php
 // Do a request and get the request response.
-$requestResponse = $sparkyApi->request('post', '/endpoint')->getRequestResponse();
+$requestResponse = $sparkyApi->request('post', '/endpoint')->getResponse();
 ```
 
-### Get Request Response
+### Get Response
 
 This method allows to get the response of the request.
 
-> getRequestResponse(bool <$object>)
+> getResponse(bool <$object>)
 
 - The `object` argument defines if the request response must be returned as object or not.  
 The API replies in JSON format, so the response is a raw JSON string.  
@@ -272,9 +276,9 @@ The `object` argument is set to `true` by default.
 Usage examples:
 
 ```php
-$requestResponse = $sparkyApi->getRequestResponse();      // Return a PHP object.
-$requestResponse = $sparkyApi->getRequestResponse(true);  // Return a PHP object.
-$requestResponse = $sparkyApi->getRequestResponse(false); // Return a raw JSON string.
+$requestResponse = $sparkyApi->getResponse();      // Return a PHP object.
+$requestResponse = $sparkyApi->getResponse(true);  // Return a PHP object.
+$requestResponse = $sparkyApi->getResponse(false); // Return a raw JSON string.
 ```
 
 This method returns a raw JSON string or a PHP object, depending on the passed argument.  
@@ -317,12 +321,12 @@ stdClass Object
 )
 ```
 
-### Get Request Response Status
+### Get Response Status
 
 This method allows to directly get the `[status]` property of the request response.  
 The `status` is the HTTP status code associated with the response.
 
-> getRequestResponseStatus()
+> getResponseStatus()
 
 This method always returns an int.
 
@@ -330,14 +334,34 @@ Usage example:
 
 ```php
 // Get the request response status.
-$requestResponseStatus = $sparkyApi->getRequestResponseStatus();
+$requestResponseStatus = $sparkyApi->getResponseStatus();
 ```
 
-### Get Request Response Data
+### Get Response Headers
+
+This method allows to get the response headers.
+
+> getResponseHeaders(bool <$array>)
+
+- The `array` argument defines if the headers must be returned as array or not.  
+The `array` argument allows to get a parsed associative array instead of a raw headers string.  
+The `array` argument is set to `true` by default.
+
+This method returns a parsed associative array or a raw headers string, depending on the passed argument.
+
+Usage examples:
+
+```php
+$requestResponseHeaders = $sparkyApi->getResponseHeaders();      // Return a parsed array.
+$requestResponseHeaders = $sparkyApi->getResponseHeaders(true);  // Return a parsed array.
+$requestResponseHeaders = $sparkyApi->getResponseHeaders(false); // Return a raw headers string.
+```
+
+### Get Response Data
 
 This method allows to directly get the `[data]` property of the request response.
 
-> getRequestResponseData()
+> getResponseData()
 
 This method always returns a PHP object.
 
@@ -345,14 +369,14 @@ Usage example:
 
 ```php
 // Get the request response data.
-$requestResponseData = $sparkyApi->getRequestResponseData();
+$requestResponseData = $sparkyApi->getResponseData();
 ```
 
-### Get Request Response Messages
+### Get Response Messages
 
 This method allows to directly get the `[messages]` property of the request response.
 
-> getRequestResponseMessages()
+> getResponseMessages()
 
 This method always returns a PHP array.
 
@@ -360,16 +384,77 @@ Usage example:
 
 ```php
 // Get the request response messages.
-$requestResponseMessages = $sparkyApi->getRequestResponseMessages();
+$requestResponseMessages = $sparkyApi->getResponseMessages();
 ```
 
-### Get Request Info
+### Get Sent
+
+This method allows to get the complete sent request.
+
+> getSent(bool <$object>)
+
+- The `object` argument defines if the sent request must be returned as object or not.  
+The `object` argument allows to get a PHP object instead of a raw string.  
+The `object` argument is set to `true` by default.
+
+This method returns a raw string or a PHP object, depending on the passed argument.  
+The sent request includes the method, endpoint, headers, and payload.
+
+Usage examples:
+
+```php
+$requestSent = $sparkyApi->getSent();      // Return a PHP object.
+$requestSent = $sparkyApi->getSent(true);  // Return a PHP object.
+$requestSent = $sparkyApi->getSent(false); // Return a raw string.
+```
+
+### Get Sent Headers
+
+This method allows to get the sent headers.
+
+> getSentHeaders(bool <$array>)
+
+- The `array` argument defines if the headers must be returned as array or not.  
+The `array` argument allows to get a parsed associative array instead of a raw headers string.  
+The `array` argument is set to `true` by default.
+
+This method returns a parsed associative array or a raw headers string, depending on the passed argument.
+
+Usage examples:
+
+```php
+$requestSentHeaders = $sparkyApi->getSentHeaders();      // Return a parsed array.
+$requestSentHeaders = $sparkyApi->getSentHeaders(true);  // Return a parsed array.
+$requestSentHeaders = $sparkyApi->getSentHeaders(false); // Return a raw headers string.
+```
+
+### Get Sent Payload
+
+This method allows to get the sent payload.
+
+> getSentPayload(bool <$object>)
+
+- The `object` argument defines if the payload must be returned as object or not.  
+The `object` argument allows to get a PHP object instead of a raw string.  
+The `object` argument is set to `true` by default.
+
+This method returns a raw string or a PHP object, depending on the passed argument.
+
+Usage examples:
+
+```php
+$requestSentPayload = $sparkyApi->getSentPayload();      // Return a PHP object.
+$requestSentPayload = $sparkyApi->getSentPayload(true);  // Return a PHP object.
+$requestSentPayload = $sparkyApi->getSentPayload(false); // Return a raw string.
+```
+
+### Get cURL Info
 
 This method allows to get the cURL request information.  
 Each request is made using the PHP cURL extension, and this method returns the result of `curl_getinfo()`.  
 See the official [PHP.net](https://www.php.net/manual/en/function.curl-getinfo.php) documentation for details.
 
-> getRequestInfo()
+> getCurlInfo()
 
 This method always returns a PHP array.
 
@@ -377,7 +462,7 @@ Usage example:
 
 ```php
 // Get the request info.
-$requestInfo = $sparkyApi->getRequestInfo();
+$requestInfo = $sparkyApi->getCurlInfo();
 ```
 
 ### Debug Start
@@ -505,7 +590,7 @@ var_dump($sparkyApi->debugGet());
 This method allows to disable the cURL SSL verify peer.  
 For example: accepting self-signed SSL certificates in development.
 
-> acceptUnsafeCertificatesByDisablingCurlSllVerifyPeer()
+> acceptUnsafeCertificatesByDisablingCurlSslVerifyPeer()
 
 **WARNING:**  
 **This method is intended for API development and testing purposes only.**  
@@ -520,7 +605,7 @@ Example:
 ```php
 // Accept self-signed certificates when testing against local API instance.
 $sparkyApi = new SparkyApiClient('https://local-api.dev', 'SPARKY_API_KEY');
-$sparkyApi->acceptUnsafeCertificatesByDisablingCurlSllVerifyPeer();
+$sparkyApi->acceptUnsafeCertificatesByDisablingCurlSslVerifyPeer();
 $sparkyApi->request('post', '/endpoint', ['data' => 'value']);
 ```
 
